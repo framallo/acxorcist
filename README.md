@@ -77,7 +77,7 @@ originals; compliant copies are written to a new `ACX Compliant/` subfolder with
 filenames. Each file prints a compliance line:
 
 ```
-▶ 06 Preface ES.mp3
+▶ introduction.mp3
   RMS  -20.7 dB [OK   | -23..-18]   Peak   -3.6 dB [OK   | <=-3]   Len    414s [OK | <=7200]
 ```
 
