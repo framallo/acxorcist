@@ -1,0 +1,7 @@
+# Never commit audio or generated output
+*.mp3
+*.wav
+*.m4a
+*.flac
+ACX Compliant/
+.DS_Store

@@ -1,0 +1,123 @@
+#!/usr/bin/env bash
+#
+# acx_convert.sh — Convert MP3 files in this folder to ACX-compliant audio.
+#
+# ACX submission requirements enforced here:
+#   - RMS loudness between -23 dB and -18 dB   (we target ~ -20 dB)
+#   - Peak no higher than -3 dB                (we limit at -3.5 dBTP)
+#   - Noise floor below -60 dB RMS             (padding is digital silence)
+#   - MP3, 192 kbps CBR or higher              (we encode 192 kbps CBR)
+#   - 44.1 kHz sample rate
+#   - Consistent channels (stereo)
+#   - Room tone: ~0.5 s silence at head, ~2 s at tail
+#   - Each file under 120 minutes
+#
+# Usage:
+#   ./acx_convert.sh            Convert every *.mp3 in this folder -> "ACX Compliant/"
+#   ./acx_convert.sh check      Only report current compliance of the originals
+#   ./acx_convert.sh verify     Report compliance of files already in "ACX Compliant/"
+#
+# Requires: ffmpeg + ffprobe (installed via Homebrew).
+
+set -euo pipefail
+
+# --- Configuration -----------------------------------------------------------
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+IN_DIR="$SCRIPT_DIR"
+OUT_DIR="$SCRIPT_DIR/ACX Compliant"
+
+TARGET_RMS="-20"    # target RMS (dB) -> center of ACX -23..-18 window
+PEAK_LIMIT="0.668"  # alimiter ceiling, linear: 0.668 ~= -3.5 dB (keeps peak <= -3)
+LEAD_SILENCE="0.5"  # seconds of room tone at the head
+TAIL_SILENCE="2.0"  # seconds of room tone at the tail
+BITRATE="192k"      # CBR MP3 bitrate
+SAMPLE_RATE="44100"
+
+# --- Helpers -----------------------------------------------------------------
+have() { command -v "$1" >/dev/null 2>&1; }
+
+if ! have ffmpeg || ! have ffprobe; then
+  echo "ERROR: ffmpeg/ffprobe not found. Install with: brew install ffmpeg" >&2
+  exit 1
+fi
+
+# Print mean/max volume + duration, and flag against ACX thresholds.
+report_file() {
+  local f="$1"
+  local out
+  out="$(ffmpeg -hide_banner -i "$f" -af volumedetect -f null /dev/null 2>&1)"
+  local mean max dur
+  mean="$(echo "$out" | sed -n 's/.*mean_volume: \(-*[0-9.]*\) dB.*/\1/p')"
+  max="$(echo  "$out" | sed -n 's/.*max_volume: \(-*[0-9.]*\) dB.*/\1/p')"
+  dur="$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$f")"
+
+  local rms_ok peak_ok len_ok
+  rms_ok=$(awk -v v="$mean" 'BEGIN{print (v>=-23 && v<=-18)?"OK":"FAIL"}')
+  peak_ok=$(awk -v v="$max"  'BEGIN{print (v<=-3)?"OK":"FAIL"}')
+  len_ok=$(awk -v v="$dur"  'BEGIN{print (v<=7200)?"OK":"FAIL"}')
+
+  printf '  RMS %6s dB [%-4s | -23..-18]   Peak %6s dB [%-4s | <=-3]   Len %6.0fs [%s | <=7200]\n' \
+    "$mean" "$rms_ok" "$max" "$peak_ok" "$dur" "$len_ok"
+}
+
+# --- Modes -------------------------------------------------------------------
+MODE="${1:-convert}"
+
+if [[ "$MODE" == "check" ]]; then
+  echo "Checking ACX compliance of ORIGINAL files in: $IN_DIR"
+  shopt -s nullglob
+  for f in "$IN_DIR"/*.mp3; do
+    echo "• $(basename "$f")"
+    report_file "$f"
+  done
+  exit 0
+fi
+
+if [[ "$MODE" == "verify" ]]; then
+  echo "Verifying converted files in: $OUT_DIR"
+  shopt -s nullglob
+  for f in "$OUT_DIR"/*.mp3; do
+    echo "• $(basename "$f")"
+    report_file "$f"
+  done
+  exit 0
+fi
+
+# --- Convert -----------------------------------------------------------------
+mkdir -p "$OUT_DIR"
+echo "Converting MP3s in: $IN_DIR"
+echo "Output -> $OUT_DIR"
+echo
+
+shopt -s nullglob
+count=0
+for f in "$IN_DIR"/*.mp3; do
+  base="$(basename "$f")"
+  out="$OUT_DIR/$base"
+  echo "▶ $base"
+
+  # --- Step 1: measure current RMS (whole-file mean volume, the ACX proxy) ---
+  mean="$(ffmpeg -hide_banner -i "$f" -af volumedetect -f null /dev/null 2>&1 \
+    | sed -n 's/.*mean_volume: \(-*[0-9.]*\) dB.*/\1/p')"
+
+  # --- Step 2: gain to hit TARGET_RMS, hard-limit peak, add room tone, encode CBR ---
+  # gain raises RMS directly to the ACX window center; alimiter holds peaks
+  # under -3 dB; adelay/apad add head/tail room tone; first_pts=0 keeps the
+  # mp3 muxer timestamps monotonic (avoids non-monotonic DTS warnings).
+  gain="$(awk -v m="$mean" -v t="$TARGET_RMS" 'BEGIN{printf "%.2f", t - m}')"
+  lead_ms="$(awk -v s="$LEAD_SILENCE" 'BEGIN{printf "%d", s*1000}')"
+  filter="volume=${gain}dB,alimiter=limit=${PEAK_LIMIT}:level=false,adelay=${lead_ms}|${lead_ms},apad=pad_dur=${TAIL_SILENCE},aresample=${SAMPLE_RATE}:first_pts=0"
+
+  ffmpeg -hide_banner -loglevel error -y -i "$f" \
+    -af "$filter" \
+    -map_metadata 0 \
+    -c:a libmp3lame -b:a "$BITRATE" -ar "$SAMPLE_RATE" -ac 2 \
+    "$out"
+
+  report_file "$out"
+  count=$((count+1))
+  echo
+done
+
+echo "Done. Converted $count file(s) into: $OUT_DIR"
+echo "Run './acx_convert.sh verify' to re-check the results."
