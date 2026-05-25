@@ -35,17 +35,22 @@ regardless of how much silence a file contains.
 
 ## Install
 
-Requires [`ffmpeg`](https://ffmpeg.org/) (which includes `ffprobe`).
+Requires [`ffmpeg`](https://ffmpeg.org/) (which includes `ffprobe`):
 
 ```bash
-# macOS
-brew install ffmpeg
-
-# Debian / Ubuntu
-sudo apt install ffmpeg
+brew install ffmpeg          # macOS
+sudo apt install ffmpeg      # Debian / Ubuntu
 ```
 
-Then grab the script:
+### One-line install
+
+Installs an `acxorcist` command onto your PATH:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/framallo/acxorcist/main/install.sh | bash
+```
+
+### Manual install
 
 ```bash
 git clone https://github.com/framallo/acxorcist.git
@@ -57,12 +62,14 @@ Or just download `acx_convert.sh` and `chmod +x` it.
 
 ## Usage
 
-Drop the script into the folder containing your MP3s (or point it at one), then:
+Run inside the folder containing your MP3s. If you used the one-line installer the
+command is `acxorcist`; with a manual clone it's `./acx_convert.sh` — they're the same
+script.
 
 ```bash
-./acx_convert.sh          # convert every *.mp3 in the folder -> "ACX Compliant/"
-./acx_convert.sh check    # report current compliance of the originals (no conversion)
-./acx_convert.sh verify   # re-check files already in "ACX Compliant/"
+acxorcist          # convert every *.mp3 in the folder -> "ACX Compliant/"
+acxorcist check    # report current compliance of the originals (no conversion)
+acxorcist verify   # re-check files already in "ACX Compliant/"
 ```
 
 Originals are never modified — compliant copies are written to a new `ACX Compliant/`
