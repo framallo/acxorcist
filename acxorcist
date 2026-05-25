@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# acx_convert.sh — Convert MP3 files in this folder to ACX-compliant audio.
+# acxorcist — Convert MP3 files in this folder to ACX-compliant audio.
 #
 # ACX submission requirements enforced here:
 #   - RMS loudness between -23 dB and -18 dB   (we target ~ -20 dB)

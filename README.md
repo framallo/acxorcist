@@ -55,16 +55,15 @@ curl -fsSL https://raw.githubusercontent.com/framallo/acxorcist/main/install.sh 
 ```bash
 git clone https://github.com/framallo/acxorcist.git
 cd acxorcist
-chmod +x acx_convert.sh
+chmod +x acxorcist
 ```
 
-Or just download `acx_convert.sh` and `chmod +x` it.
+Or just download `acxorcist` and `chmod +x` it.
 
 ## Usage
 
-Run inside the folder containing your MP3s. It acts on the current directory. If you used
-the one-line installer the command is `acxorcist`; with a manual clone it's
-`./acx_convert.sh` — they're the same script.
+Run inside the folder containing your MP3s. It acts on the current directory. The command
+is `acxorcist` (or `./acxorcist` if you cloned manually and it isn't on your PATH).
 
 ```bash
 acxorcist          # report current ACX compliance of the MP3s (default, no changes)
@@ -83,7 +82,7 @@ filenames. Each file prints a compliance line:
 
 ## Configuration
 
-Tweak the variables at the top of `acx_convert.sh`:
+Tweak the variables at the top of `acxorcist`:
 
 | Variable | Default | Meaning |
 |---|---|---|

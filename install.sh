@@ -4,14 +4,14 @@
 #
 #   curl -fsSL https://raw.githubusercontent.com/framallo/acxorcist/main/install.sh | bash
 #
-# Downloads acx_convert.sh from GitHub and installs it as the `acxorcist`
+# Downloads the acxorcist script from GitHub and installs it as the `acxorcist`
 # command into a directory on your PATH.
 
 set -euo pipefail
 
 REPO="framallo/acxorcist"
 BRANCH="main"
-SRC_URL="https://raw.githubusercontent.com/${REPO}/${BRANCH}/acx_convert.sh"
+SRC_URL="https://raw.githubusercontent.com/${REPO}/${BRANCH}/acxorcist"
 CMD_NAME="acxorcist"
 
 info()  { printf '\033[1;34m==>\033[0m %s\n' "$1"; }
