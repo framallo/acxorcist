@@ -61,4 +61,4 @@ case ":$PATH:" in
      warn "  export PATH=\"${INSTALL_DIR}:\$PATH\"" ;;
 esac
 
-info "Done. Run '${CMD_NAME}' inside a folder of MP3s, or '${CMD_NAME} check' to audit first."
+info "Done. Run '${CMD_NAME}' in a folder of MP3s to audit, then '${CMD_NAME} convert'."

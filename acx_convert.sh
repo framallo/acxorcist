@@ -12,19 +12,18 @@
 #   - Room tone: ~0.5 s silence at head, ~2 s at tail
 #   - Each file under 120 minutes
 #
-# Usage:
-#   ./acx_convert.sh            Convert every *.mp3 in this folder -> "ACX Compliant/"
-#   ./acx_convert.sh check      Only report current compliance of the originals
-#   ./acx_convert.sh verify     Report compliance of files already in "ACX Compliant/"
+# Usage (runs on the current working directory):
+#   acxorcist            Report current ACX compliance of the MP3s (no changes)
+#   acxorcist convert    Convert every *.mp3 here -> "ACX Compliant/"
+#   acxorcist verify     Report compliance of files already in "ACX Compliant/"
 #
 # Requires: ffmpeg + ffprobe (installed via Homebrew).
 
 set -euo pipefail
 
 # --- Configuration -----------------------------------------------------------
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-IN_DIR="$SCRIPT_DIR"
-OUT_DIR="$SCRIPT_DIR/ACX Compliant"
+IN_DIR="$PWD"
+OUT_DIR="$PWD/ACX Compliant"
 
 TARGET_RMS="-20"    # target RMS (dB) -> center of ACX -23..-18 window
 PEAK_LIMIT="0.668"  # alimiter ceiling, linear: 0.668 ~= -3.5 dB (keeps peak <= -3)
@@ -61,15 +60,17 @@ report_file() {
 }
 
 # --- Modes -------------------------------------------------------------------
-MODE="${1:-convert}"
+MODE="${1:-report}"
 
-if [[ "$MODE" == "check" ]]; then
-  echo "Checking ACX compliance of ORIGINAL files in: $IN_DIR"
+if [[ "$MODE" == "report" || "$MODE" == "check" ]]; then
+  echo "ACX compliance report for MP3s in: $IN_DIR"
   shopt -s nullglob
   for f in "$IN_DIR"/*.mp3; do
     echo "• $(basename "$f")"
     report_file "$f"
   done
+  echo
+  echo "Run 'acxorcist convert' to write ACX-compliant copies into \"ACX Compliant/\"."
   exit 0
 fi
 
@@ -81,6 +82,12 @@ if [[ "$MODE" == "verify" ]]; then
     report_file "$f"
   done
   exit 0
+fi
+
+if [[ "$MODE" != "convert" ]]; then
+  echo "Unknown command: $MODE" >&2
+  echo "Usage: acxorcist [report|convert|verify]" >&2
+  exit 2
 fi
 
 # --- Convert -----------------------------------------------------------------
@@ -120,4 +127,4 @@ for f in "$IN_DIR"/*.mp3; do
 done
 
 echo "Done. Converted $count file(s) into: $OUT_DIR"
-echo "Run './acx_convert.sh verify' to re-check the results."
+echo "Run 'acxorcist verify' to re-check the results."

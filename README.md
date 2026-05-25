@@ -62,18 +62,19 @@ Or just download `acx_convert.sh` and `chmod +x` it.
 
 ## Usage
 
-Run inside the folder containing your MP3s. If you used the one-line installer the
-command is `acxorcist`; with a manual clone it's `./acx_convert.sh` — they're the same
-script.
+Run inside the folder containing your MP3s. It acts on the current directory. If you used
+the one-line installer the command is `acxorcist`; with a manual clone it's
+`./acx_convert.sh` — they're the same script.
 
 ```bash
-acxorcist          # convert every *.mp3 in the folder -> "ACX Compliant/"
-acxorcist check    # report current compliance of the originals (no conversion)
+acxorcist          # report current ACX compliance of the MP3s (default, no changes)
+acxorcist convert  # write ACX-compliant copies -> "ACX Compliant/"
 acxorcist verify   # re-check files already in "ACX Compliant/"
 ```
 
-Originals are never modified — compliant copies are written to a new `ACX Compliant/`
-subfolder with identical filenames. Each converted file prints a compliance line:
+The default does nothing destructive — it just audits. `convert` never modifies your
+originals; compliant copies are written to a new `ACX Compliant/` subfolder with identical
+filenames. Each file prints a compliance line:
 
 ```
 ▶ 06 Preface ES.mp3
