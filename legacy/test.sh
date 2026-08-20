@@ -6,7 +6,7 @@
 set -euo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
-ACX="$HERE/acxorcist"
+ACX="$HERE/acxorcist.sh"
 pass=0; fail=0
 ok()   { printf '\033[1;32mPASS\033[0m %s\n' "$1"; pass=$((pass+1)); }
 bad()  { printf '\033[1;31mFAIL\033[0m %s\n' "$1"; fail=$((fail+1)); }

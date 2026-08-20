@@ -1,3 +1,6 @@
+# Rust build artifacts
+/target
+
 # Never commit audio or generated output
 *.mp3
 *.wav

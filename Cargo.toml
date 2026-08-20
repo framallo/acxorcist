@@ -1,0 +1,33 @@
+[package]
+name = "acxorcist"
+version = "0.2.0"
+edition = "2021"
+description = "Batch-convert MP3s into ACX-compliant audiobook files — one self-contained binary, no ffmpeg"
+license = "MIT"
+repository = "https://github.com/framallo/acxorcist"
+
+[[bin]]
+name = "acxorcist"
+path = "src/main.rs"
+
+[lib]
+name = "acxorcist"
+path = "src/lib.rs"
+
+[profile.release]
+strip = true
+lto = true
+
+[dependencies]
+# Pure-Rust MP3 decode.
+symphonia = { version = "0.5", default-features = false, features = ["mp3"] }
+# libmp3lame compiled into the binary (CBR MP3 encode). No runtime dependency.
+mp3lame-encoder = "0.2"
+# High-quality resampling for the rare non-44.1kHz input.
+rubato = "0.16"
+# Copy ID3 tags from source to output (map_metadata parity).
+id3 = "1"
+anyhow = "1"
+
+[dev-dependencies]
+tempfile = "3"
