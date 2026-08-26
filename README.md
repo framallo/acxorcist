@@ -56,6 +56,10 @@ With Cargo (any platform with a Rust toolchain and a C compiler for libmp3lame):
 cargo install --git https://github.com/framallo/acxorcist
 ```
 
+Prebuilt binaries are published for **macOS** (Apple Silicon + Intel) and
+**Linux** (x86_64 + ARM64); `brew install` and `curl | sh` pull the right one
+automatically. `cargo install` covers any other platform.
+
 ## Usage
 
 Run inside the folder containing your MP3s. It acts on the current directory.
