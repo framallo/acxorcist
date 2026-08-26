@@ -35,18 +35,27 @@ jobs:
             acxorcist-${{ matrix.target }}.tar.gz.sha256
 
   linux:
-    runs-on: ubuntu-latest
+    # Native runners per arch (ARM64 runner avoids cross-compiling the libmp3lame
+    # C build). GitHub provides ubuntu-24.04-arm free for public repos.
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - runner: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
     steps:
       - uses: actions/checkout@v4
       - name: Install build deps (autotools for libmp3lame)
         run: sudo apt-get update && sudo apt-get install -y autoconf automake libtool build-essential
-      - run: cargo build --release --bin acxorcist --target x86_64-unknown-linux-gnu
+      - run: cargo build --release --bin acxorcist --target ${{ matrix.target }}
       - name: Package
         run: |
-          tar -C target/x86_64-unknown-linux-gnu/release -czf acxorcist-x86_64-unknown-linux-gnu.tar.gz acxorcist
-          sha256sum acxorcist-x86_64-unknown-linux-gnu.tar.gz > acxorcist-x86_64-unknown-linux-gnu.tar.gz.sha256
+          tar -C target/${{ matrix.target }}/release -czf acxorcist-${{ matrix.target }}.tar.gz acxorcist
+          sha256sum acxorcist-${{ matrix.target }}.tar.gz > acxorcist-${{ matrix.target }}.tar.gz.sha256
       - uses: softprops/action-gh-release@v2
         with:
           files: |
-            acxorcist-x86_64-unknown-linux-gnu.tar.gz
-            acxorcist-x86_64-unknown-linux-gnu.tar.gz.sha256
+            acxorcist-${{ matrix.target }}.tar.gz
+            acxorcist-${{ matrix.target }}.tar.gz.sha256
